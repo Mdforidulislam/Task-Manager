@@ -1,224 +1,173 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from 'react';
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
-import Column from "./Column";
-import KanModal from "./Modal";
-import { DragDropContext } from "react-beautiful-dnd";
-import { Box, Button } from "@mui/material";
-import AddColumn from "./AddColumn";
-import AddIcon from "@mui/icons-material/Add";
-import { Data } from "./Data";
+// Mock data
+const initialData = {
+  todo: [
+    { id: 'task-1', content: 'Task 1', status: 'todo' },
+    { id: 'task-2', content: 'Task 2', status: 'todo' },
+    { id: 'task-3', content: 'Task 2', status: 'todo' },
+  ],
+  inProgress: [
+       { id: 'task-4', content: 'Task 1', status: 'inprogress' },
+      { id: 'task-5', content: 'Task 1', status: 'inprogress' },
+      { id: 'task-6', content: 'Task 1', status: 'inprogress' }
+      ],
+  completed: [
+  { id: 'task-7', content: 'Task 2', status: 'completed' },
+  { id: 'task-8', content: 'Task 2', status: 'completed' },
+  { id: 'task-9', content: 'Task 2', status: 'completed' },
+  { id: 'task-10', content: 'Task 2', status: 'completed' }
+],
+};
 
-const Kanban = () => {
-  const [openColModal, setOpenColModal] = useState(false);
-  const [open, setOpen] = useState(false);
-  const [columns, setColumns] = useState([]);
-  const [modal, setModal] = useState(false);
 
-  useEffect(()=>{
-       fetch('http://localhost:5000/userTaskGet')
-        .then(res => res.json())
-        .then(data => setColumns(data)) || Data;
-  },[])
-  console.log(columns);
 
+const YourComponent = () => {
+  const [data, setData] = useState(initialData);
+
+  // Simulating API call to fetch data
+  useEffect(() => {
+    // Replace this with your API call to fetch actual data
+    // For now, setting initial demo data
+    setData(initialData);
+  }, []);
 
   const onDragEnd = (result) => {
     const { destination, source, draggableId } = result;
-
-    if (!destination) {
-      console.log("no destination");
-      return;
-    }
-
+  
+    // Check if the drop is outside the droppable area
+    if (!destination) return;
+  
+    // If dropped in the same place
     if (
       destination.droppableId === source.droppableId &&
       destination.index === source.index
     ) {
-      console.log("index and destination the same");
       return;
     }
-
-    const start = columns[source.droppableId];
-    const finish = columns[destination.droppableId];
-
-    if (start === finish) {
-      const newTaskIds = Array.from(start.taskIds);
-
-      const swapTask = newTaskIds[source.index];
-      newTaskIds.splice(source.index, 1);
-      newTaskIds.splice(destination.index, 0, swapTask);
-
-      const newColumnsState = columns.map((c) => {
-        if (c.id === start.id) {
-          c.taskIds = newTaskIds;
-          return c;
-        } else return c;
-      });
-
-      const newColumnsState2 = [...newColumnsState];
-      setColumns(newColumnsState2);
-    } else {
-      if (finish.taskIds.length < finish.limit) {
-        const startTaskIds = Array.from(start.taskIds);
-        const [item] = startTaskIds.splice(source.index, 1);
-
-        const finishTaskIds = Array.from(finish.taskIds);
-        finishTaskIds.splice(destination.index, 0, item);
-
-        const newColumnsState = columns.map((c) => {
-          if (c.id === start.id) {
-            c.taskIds = startTaskIds;
-            return c;
-          } else if (c.id === finish.id) {
-            c.taskIds = finishTaskIds;
-            return c;
-          } else return c;
-        });
-        const newColumnsState2 = [...newColumnsState];
-        setColumns(newColumnsState2);
-      } else return;
-    }
-  };
-
-  const openModal = (data) => {
-    const columnId = data.id;
-    setModal(columnId);
-    setOpen(true);
-  };
-
-  const closeModal = () => {
-    setModal(false);
-    setOpen(false);
-  };
-  const closeColModal = () => {
-    setOpenColModal(false);
-  };
-
-  const addTask = (newTask) => {
-    setModal(false);
-    const updatedColumns = columns.map((column) => {
-      if (column.id === newTask.idColumn && column.taskIds.length < 5) {
-        column.taskIds.push(newTask);
-        return column;
-      } else return column;
-    });
-    setColumns(updatedColumns);
-  };
-
-  const removeTask = (taskId) => {
-    const updatedColumns = columns
-      .map((column) => {
-        return Object.assign({}, column, {
-          taskIds: column.taskIds.filter((task) => task.id !== taskId),
-        });
-      })
-      .filter((column) => column.taskIds.length >= 0);
-    setColumns(updatedColumns);
-  };
-
-  const removeColumn = (columnId) => {
-    const updatedColumns = columns.filter((item) => item.id !== columnId);
-    setColumns(updatedColumns);
-  };
-
-  const editTask = (taskId, newTitle, newText) => {
-    const updatedColumns = columns.map((column) => {
-      return Object.assign({}, column, {
-        taskIds: column.taskIds.map((task) => {
-          if (task.id === taskId) {
-            task.title = newTitle;
-            task.text = newText;
-            return task;
-          }
-          return task;
-        }),
-      });
-    });
-    setColumns(updatedColumns);
-  };
-
-  const addColumn = (newColumn) => {
-    setColumns([...columns, newColumn]);
-    console.log(columns);
-  };
-
-  useEffect(() => {
   
-    fetch("http://localhost:5000/userTaskAdd", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(columns),
-    })
-      .then((response) => response.json())
-      .then((data) => console.log(data))
-      .catch((error) => console.error("Error:", error));
-  }, [columns]);
+    const updatedData = { ...data };
+    const draggableItem = updatedData[source.droppableId].find(
+      (item) => item.id === draggableId
+    );
+  
+    // Remove from the source list
+    updatedData[source.droppableId] = updatedData[source.droppableId].filter(
+      (item) => item.id !== draggableId
+    );
+  
+    // Create a new object with the updated status
+    const updatedItem = {
+      ...draggableItem,
+      status: destination.droppableId,
+    };
+  
+    // Add to the destination list
+    updatedData[destination.droppableId].splice(
+      destination.index,
+      0,
+      updatedItem
+    );
+  
+    setData(updatedData);
+  };
 
-  console.log(columns);
+  
 
   return (
-    <>
-      <DragDropContext onDragEnd={onDragEnd}>
-        <AddColumn
-          openModal={openColModal}
-          closeModal={closeColModal}
-          addColumn={addColumn}
-          columnId={columns.length + 1}
-        />
-        <Button
-          startIcon={<AddIcon />}
-          sx={{
-            color: "#000",
-            backgroundColor: "#eee",
-            textTransform: "none",
-            ":hover": {
-              backgroundColor: "#ddd",
-            },
-            py: 1,
-            my: 2,
-          }}
-          onClick={() => {
-            setOpenColModal(true);
-          }}
-        >
-          Add New Column
-        </Button>
-        <Box>
-          {modal && (
-            <KanModal
-              openModal={open}
-              closeModal={closeModal}
-              addTask={addTask}
-              columnData={modal}
-            />
+    <DragDropContext onDragEnd={onDragEnd}>
+      <div className="board flex flex-col md:flex-row gap-6 justify-around  w-full ">
+        <Droppable droppableId="todo">
+          {(provided) => (
+            <div
+              {...provided.droppableProps}
+              ref={provided.innerRef}
+              className="column"
+            >
+              <h2>Todo</h2>
+              {data.todo.map((task, index) => (
+                <Draggable key={task.id} draggableId={task.id} index={index}>
+                  {(provided) => (
+                    <div
+                      {...provided.draggableProps}
+                      {...provided.dragHandleProps}
+                      ref={provided.innerRef}
+                      className="task"
+                    >
+                      {task.content}
+                    </div>
+                  )}
+                </Draggable>
+              ))}
+              {provided.placeholder}
+            </div>
           )}
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "row",
-              pt: 4,
-              justifyContent: "flex-start",
-            }}
-          >
-            {columns.map((c) => {
-              return (
-                <Column
-                  columnData={c}
-                  key={c.name}
-                  openModal={openModal}
-                  removeTask={removeTask}
-                  removeColumn={removeColumn}
-                  editTask={editTask}
-                />
-              );
-            })}
-          </Box>
-        </Box>
-      </DragDropContext>
-    </>
+        </Droppable>
+
+        {/* last  */}
+
+        <Droppable droppableId="inprogress">
+          {(provided) => (
+            <div
+              {...provided.droppableProps}
+              ref={provided.innerRef}
+              className="column"
+            >
+              <h2>InProgress</h2>
+              {data.inProgress.map((task, index) => (
+                <Draggable key={task.id} draggableId={task.id} index={index}>
+                  {(provided) => (
+                    <div
+                      {...provided.draggableProps}
+                      {...provided.dragHandleProps}
+                      ref={provided.innerRef}
+                      className="task"
+                    >
+                      {task.content}
+                    </div>
+                  )}
+                </Draggable>
+              ))}
+              {provided.placeholder}
+            </div>
+          )}
+        </Droppable>
+
+        {/* Complated */}
+
+        <Droppable droppableId="completed">
+          {(provided) => (
+            <div
+              {...provided.droppableProps}
+              ref={provided.innerRef}
+              className="column"
+            >
+              <h2>Complated</h2>
+              {data.completed.map((task, index) => (
+                <Draggable key={task.id} draggableId={task.id} index={index}>
+                  {(provided) => (
+                    <div
+                      {...provided.draggableProps}
+                      {...provided.dragHandleProps}
+                      ref={provided.innerRef}
+                      className="task"
+                    >
+                      {task.content}
+                    </div>
+                  )}
+                </Draggable>
+              ))}
+              {provided.placeholder}
+            </div>
+          )}
+        </Droppable>
+
+        {/* Droppable for 'InProgress' and 'Completed' can be similarly structured */}
+        {/* For brevity, I'm not repeating the code for these columns */}
+      </div>
+    </DragDropContext>
   );
 };
 
-export default Kanban;
+export default YourComponent;
