@@ -17,6 +17,7 @@ const Task = (props) => {
   const handleClose = () => {
     setAnchorEl(null);
   };
+  
   return (
     <Draggable draggableId={`${props.task.id}`} index={props.index}>
       {(provided, snapshot) => (

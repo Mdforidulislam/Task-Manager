@@ -172,7 +172,7 @@ function NavList() {
 
 export function ComplexNavbar() {
   const [isNavOpen, setIsNavOpen] = React.useState(false);
-  const { user , logOut } = useContext(shareAuth);
+  const { userinfo , logoutUser } = useContext(shareAuth);
   const toggleIsNavOpen = () => setIsNavOpen((cur) => !cur);
 
   React.useEffect(() => {
@@ -183,8 +183,11 @@ export function ComplexNavbar() {
   }, []);
 
 
+  console.log(logoutUser);
   const handlesingOut = () =>{
-    logOut()
+    logoutUser()
+    .then((result) => console.log(result))
+    .catch((error) => console.log(error));
   }
 
 
@@ -213,7 +216,7 @@ export function ComplexNavbar() {
         </IconButton>
 
         <Button size="sm" variant="text">
-          {user? (
+          {userinfo? (
             <span onClick={handlesingOut}>Log Out</span>
           ) : (
             <Link to={"/login"}>
@@ -222,11 +225,11 @@ export function ComplexNavbar() {
           )}
         </Button>
 
-        <Button size="sm" variant="text">
+      {userinfo ?  <Button size="sm" variant="text">
           <Link to={"/dashboard"}>
             <h1>Dashboard</h1>
           </Link>
-        </Button>
+        </Button> : ' '}
         <ProfileMenu />
       </div>
       <MobileNav open={isNavOpen} className="overflow-scroll">

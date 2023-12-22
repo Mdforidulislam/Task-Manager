@@ -1,5 +1,5 @@
 import { LeftSideBardMoblie } from "../Components/LeftSidebar/NavBarMoblile";
-import { RightsidebarMobile } from "../Components/RightSidebar/NavBarMoblile";
+
 
 
 const MobileHeader = () => {

@@ -11,10 +11,16 @@ import { Data } from "./Data";
 const Kanban = () => {
   const [openColModal, setOpenColModal] = useState(false);
   const [open, setOpen] = useState(false);
-  const [columns, setColumns] = useState(
-    JSON.parse(window.localStorage.getItem("columns")) || Data
-  );
+  const [columns, setColumns] = useState([]);
   const [modal, setModal] = useState(false);
+
+  useEffect(()=>{
+       fetch('http://localhost:5000/userTaskGet')
+        .then(res => res.json())
+        .then(data => setColumns(data)) || Data;
+  },[])
+  console.log(columns);
+
 
   const onDragEnd = (result) => {
     const { destination, source, draggableId } = result;
@@ -137,8 +143,20 @@ const Kanban = () => {
   };
 
   useEffect(() => {
-    window.localStorage.setItem("columns", JSON.stringify(columns));
+  
+    fetch("http://localhost:5000/userTaskAdd", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(columns),
+    })
+      .then((response) => response.json())
+      .then((data) => console.log(data))
+      .catch((error) => console.error("Error:", error));
   }, [columns]);
+
+  console.log(columns);
 
   return (
     <>

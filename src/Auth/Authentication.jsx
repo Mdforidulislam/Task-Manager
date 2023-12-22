@@ -1,65 +1,74 @@
 import { createContext, useEffect, useState } from "react";
 import app from "../firebase/firebase.config";
-import { getAuth, createUserWithEmailAndPassword, onAuthStateChanged, signInWithEmailAndPassword, signOut, GoogleAuthProvider, GithubAuthProvider, signInWithPopup } from "firebase/auth";
-import { Password } from "@mui/icons-material";
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  GoogleAuthProvider,
+  GithubAuthProvider,
+  signInWithPopup,
+  signOut,
+} from "firebase/auth";
 
+export const shareAuth = createContext(null);
 
-export const shareAuth = createContext(null)
 const auth = getAuth(app);
 const providerGoogle = new GoogleAuthProvider();
 const providerGithub = new GithubAuthProvider();
 
+const Authentication = ({ children }) => {
+  const [loading, setLoading] = useState(false);
+  const [userinfo, currentUser] = useState([]);
 
-const Authentication = ({children}) => {
-    const [loadin,setLoading] = useState(false)
-    const [user,currentUser] = useState({})
+  const userCreateWithEmail = (email, Password) => {
+    setLoading(true);
+    return createUserWithEmailAndPassword(auth, email, Password);
+  };
 
-    const userCreateWithEmail = ( email,Password) => {
-        setLoading(false)
-        return createUserWithEmailAndPassword(auth, email,Password)
-    }
+  const singinPassword = (email, password) => {
+    setLoading(true);
+    return signInWithEmailAndPassword(auth, email, password);
+  };
 
-    const singinPassword = (email, password) =>{
-        setLoading(false)
-        return signInWithEmailAndPassword(auth, email, password)
-    } 
+  const googleLogin = () => {
+    setLoading(true);
+    return signInWithPopup(auth, providerGoogle);
+  };
 
-    const googleLogin = () =>{
-        setLoading(false)
-        return signInWithPopup(auth,providerGoogle)
-    }
+  const singInGithub = () => {
+    setLoading(true);
+    return signInWithPopup(auth, providerGithub);
+  };
 
-    const singInGithub = () =>{
-        setLoading(false)
-        return signInWithPopup(auth,providerGithub)
-    }
-    const logOut = async ( ) =>{   
-        setLoading(false)
-       return  signOut(auth)
-         .then(result => console.log(result))
-         .catch(error =>console.log(error))
+  const logoutUser = () =>{
+    setLoading(true);
+    return signOut(auth)
+  }
 
-    }
+  useEffect(() => {
+    const unsuscripber = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        console.log(user);
+        currentUser(user);
+        setLoading(false);
+      }
+    });
 
-    useEffect(()=>{
-        const unsuscripber = onAuthStateChanged(auth,(user) =>{
-            if(user){
-                console.log(user);
-                currentUser(user)
-            }  
-        })
+    return () => unsuscripber();
+  }, []);
 
-      return ()=> unsuscripber()
+  const infoList = {
+    loading,
+    userCreateWithEmail,
+    singinPassword,
+    userinfo,
+    logoutUser,
+    googleLogin,
+    singInGithub,
+  };
 
-    },[])
-
-    const infoList = { loadin,userCreateWithEmail , singinPassword ,user , logOut ,googleLogin , singInGithub }
-
-    return (
-        <shareAuth.Provider value={infoList}>
-            {children}
-        </shareAuth.Provider>
-    );
+  return <shareAuth.Provider value={infoList}>{children}</shareAuth.Provider>;
 };
 
 export default Authentication;

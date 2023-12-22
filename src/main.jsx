@@ -13,6 +13,7 @@ import MainLayout from './Dashboard/MainLayout.jsx';
 import Kanban from './Dashboard/Kanban.jsx';
 import Authentication from './Auth/Authentication.jsx';
 import Home from './Home.jsx';
+import PrivetRoute from './PrivetRoute.jsx';
 
 
 
@@ -41,7 +42,7 @@ const router = createBrowserRouter([
     children:[
       {
         path:'dashboard',
-        element: <Kanban/>
+        element: <PrivetRoute><Kanban/></PrivetRoute> 
       }
     ]
   }

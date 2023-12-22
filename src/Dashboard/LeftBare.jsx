@@ -1,5 +1,6 @@
-import React from 'react';
-import { SidebarWithSearch } from '../Components/RightSidebar/NavbarPc';
+import { SidebarWithSearch } from "../Components/LeftSidebar/NavbarPc";
+
+
 
 const LeftBare = () => {
     return (
